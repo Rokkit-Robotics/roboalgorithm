@@ -72,7 +72,8 @@ class mapBot:
 				for j in b.corresponding_nodes_output:
 					self._way_graph.add_edge(i[0], j[0])
 
-	def find_shortest_way(self, source, destination):
+	#from - с какого направления приехали
+	def find_shortest_way(self, source, destination, from_point = None):
 		if (source in self._road_points) == False:
 			print "ERROR: no source point in _road_points"
 			return None
@@ -81,13 +82,33 @@ class mapBot:
 			print "ERROR: no destination point in _road_points"
 			return None
 
-		#добавление стартового узла
-		self._way_graph.add_node(self._nodes_counter)
+		start_node = None
+		if source.type == START_POINT:
+			#добавление стартового узла
+			self._way_graph.add_node(self._nodes_counter)
 
-		for x in source.corresponding_nodes_output:
-			self._way_graph.add_edge(self._nodes_counter, x[0])
-		self._nodes_counter = self._nodes_counter + 1
+			for x in source.corresponding_nodes_output:
+				self._way_graph.add_edge(self._nodes_counter, x[0])
+
+			start_node = self._nodes_counter
+			self._nodes_counter = self._nodes_counter + 1
+		else:
+			if from_point == None:
+				print "ERROR: I don't know from wich poin we arrived"
+				return None
+
+			inp_node = source.get_input_node(self._road_points.index(from_point))
+			if inp_node == None:
+				print "ERROR canno't go from from to source"
+				return None
+
+			start_node = inp_node
+
+
+
+
 		#добавление конечного узла
+		#можем добавить по-любому
 		self._way_graph.add_node(self._nodes_counter)
 
 		for x in destination.corresponding_nodes_input:
@@ -95,18 +116,21 @@ class mapBot:
 
 		self._nodes_counter = self._nodes_counter + 1
 
-		path = nx.shortest_path(self._way_graph, self._nodes_counter - 2, self._nodes_counter - 1)
+		path = nx.shortest_path(self._way_graph, start_node, self._nodes_counter - 1)
 		print "path by :"
 		print path
 
-		path.pop(0)
-		path.pop(len(path) - 1)
+		#не забываем удалить вершины графа
+		self._nodes_counter = self._nodes_counter - 1
+		self._way_graph.remove_node(self._nodes_counter)
 
-		#не забываем удалить вершины
-		self._nodes_counter = self._nodes_counter - 1
-		self._way_graph.remove_node(self._nodes_counter)
-		self._nodes_counter = self._nodes_counter - 1
-		self._way_graph.remove_node(self._nodes_counter)
+		if source.type == START_POINT:
+			self._nodes_counter = self._nodes_counter - 1
+			self._way_graph.remove_node(self._nodes_counter)
+			path.pop(0)
+
+
+		path.pop(len(path) - 1)
 
 		print path
 		self.print_path(path)
@@ -117,15 +141,17 @@ class mapBot:
 		for x in path:
 			if last == None:
 				last = self._reverse_set[x]
-				real_path.append(self._road_points(self._reverse_set[x]))
+				real_path.append(self._road_points[self._reverse_set[x]])
 			elif last != self._reverse_set[x]:
-				real_path.append(self._road_points(self._reverse_set[x]))
+				real_path.append(self._road_points[self._reverse_set[x]])
 				last = self._reverse_set[x]
 
 		print "real_path:"
-		print real_path
+		for x in real_path:
+			print "point: %d coords: %d %d" % (self._road_points.index(x), x.y, x.x)
 
 		return real_path
+
 
 	def remove_way(self, cur_point, from_source_point, to_dest_point):
 		if (cur_point in self._road_points) == False:
@@ -156,7 +182,7 @@ class mapBot:
 		self._way_graph.remove_edge((from_node, to_node))
 
 	def find_test_path(self):
-		self.find_shortest_way(self._road_points[0], self._road_points[6])
+		self.find_shortest_way(self._road_points[1], self._road_points[13], self._road_points[0])
 	def _is_pass(self, coord):
 		if self._robo_map[coord.y][coord.x] == ' ':
 			return True
@@ -469,9 +495,24 @@ class road_point:
 		self.corresponding_nodes_output.append([node, end_road_point])
 
 	def add_input_node(self, node, from_road_point):
-		self.corresponding_nodes_input.append(node, from_road_point)
+		self.corresponding_nodes_input.append([node, from_road_point])
+
+	def get_output_node(self, end_road_point):
+		for x in self.corresponding_nodes_output:
+			if x[1] == end_road_point:
+				return x[0]
+
+		return None
+
+	def get_input_node(self, from_road_point):
+		for x in self.corresponding_nodes_input:
+			if x[1] == from_road_point:
+				return x[0]
+
+		return None
 
 
+#ВАНЯЯ!! Вызовы всех функций до while обязаиельны!! Иначе нчигео работать не будет
 map_file = open(sys.argv[1], 'r')
 
 my_map = mapBot(map_file)
@@ -490,5 +531,29 @@ my_map.print_map()
 my_map._create_road_graph()
 #my_map.draw_graph()
 my_map.find_test_path()
+
+
+
+while 1:
+	str = input()
+	print(str)
+	if str == 'ex':
+		break
+	elif str == 'remove':
+		c = int(input())
+		f = int(input())
+		t = int(input())
+
+		my_map.remove_way(my_map.get_road_points()[c], my_map.get_road_points()[f], my_map.get_road_points()[t])
+	elif str == 'path':
+		s = int(input())
+		d = int(input())
+		f = int(input())
+		if f == 'None':
+			my_map.find_shortest_way(my_map.get_road_points()[s], my_map.get_road_points()[d])
+		else:
+			my_map.find_shortest_way(my_map.get_road_points()[s], my_map.get_road_points()[d], my_map.get_road_points()[f])
+
+
 #print my_map._is_corner(coords(1, 1))
 #print my_map._is_corner(coords(25, 24))
