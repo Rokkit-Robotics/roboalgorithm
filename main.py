@@ -67,10 +67,22 @@ class mapBot:
 			#if self._nodes_counter > 100:
 			#	break
 
+		#запретим развороты на поворотах
+
 		for b in self._road_points:
-			for i in b.corresponding_nodes_input:
-				for j in b.corresponding_nodes_output:
-					self._way_graph.add_edge(i[0], j[0])
+			if b.type == ROAD_CORNER:
+				for i in b.corresponding_nodes_input:
+					for j in b.corresponding_nodes_output:
+						print "predecessors"
+						print self._way_graph.predecessors(i[0])
+						print "successors"
+						print self._way_graph.successors(j[0])
+						if self._reverse_set[self._way_graph.predecessors(i[0])[0]] != self._reverse_set[self._way_graph.successors(j[0])[0]]:
+							self._way_graph.add_edge(i[0], j[0])
+			else:
+				for i in b.corresponding_nodes_input:
+					for j in b.corresponding_nodes_output:
+						self._way_graph.add_edge(i[0], j[0])
 
 	#from - с какого направления приехали
 	def find_shortest_way(self, source, destination, from_point = None):
@@ -175,11 +187,12 @@ class mapBot:
 				break
 
 		for x in cur_point.corresponding_nodes_output:
-			if x[1] == from_index:
+			if x[1] == to_index:
 				to_node = x[0]
 				break
-
-		self._way_graph.remove_edge((from_node, to_node))
+		if from_node != None and to_node != None:
+			print "remove edge (%d, %d)" % (from_node, to_node)
+			self._way_graph.remove_edge(from_node, to_node)
 
 	def find_test_path(self):
 		self.find_shortest_way(self._road_points[1], self._road_points[13], self._road_points[0])
@@ -535,17 +548,20 @@ my_map.find_test_path()
 
 
 while 1:
-	str = input()
-	print(str)
+	print ">"
+	str = raw_input()
+	#print(str)
 	if str == 'ex':
 		break
 	elif str == 'remove':
+		print ">curr, from, to"
 		c = int(input())
 		f = int(input())
 		t = int(input())
 
 		my_map.remove_way(my_map.get_road_points()[c], my_map.get_road_points()[f], my_map.get_road_points()[t])
 	elif str == 'path':
+		print ">source, dest, from"
 		s = int(input())
 		d = int(input())
 		f = int(input())
