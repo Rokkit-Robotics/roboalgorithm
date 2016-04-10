@@ -32,6 +32,17 @@ class mapBot:
 		#print self._robo_map
 
 		self._way_graph = nx.DiGraph()
+
+
+		#инициализация
+		self._create_road_points()
+		self.print_road_points()
+		self.draw_road_points()
+
+		self.print_start_finish_points()
+		self.print_map()
+
+		self._create_road_graph()
 		#_way_graph.add_node()
 
 	def _create_road_graph(self):
@@ -73,10 +84,10 @@ class mapBot:
 			if b.type == ROAD_CORNER:
 				for i in b.corresponding_nodes_input:
 					for j in b.corresponding_nodes_output:
-						print "predecessors"
-						print self._way_graph.predecessors(i[0])
-						print "successors"
-						print self._way_graph.successors(j[0])
+						#print "predecessors"
+						#print self._way_graph.predecessors(i[0])
+						#print "successors"
+						#print self._way_graph.successors(j[0])
 						if self._reverse_set[self._way_graph.predecessors(i[0])[0]] != self._reverse_set[self._way_graph.successors(j[0])[0]]:
 							self._way_graph.add_edge(i[0], j[0])
 			else:
@@ -193,6 +204,8 @@ class mapBot:
 		if from_node != None and to_node != None:
 			print "remove edge (%d, %d)" % (from_node, to_node)
 			self._way_graph.remove_edge(from_node, to_node)
+		else:
+			print "No this edge"
 
 	def find_test_path(self):
 		self.find_shortest_way(self._road_points[1], self._road_points[13], self._road_points[0])
@@ -441,7 +454,7 @@ class mapBot:
 			points_array = self._road_points
 		for i, x in enumerate(points_array):
 			print "--------------------"
-			print "number: %d" % (i)
+			print "number: %d coords: (%d, %d)" % (i, x.y, x.x)
 			if x.type == X_CROSSROAD:
 				print "X_CROSSROAD"
 			elif x.type == T_CROSSROAD:
@@ -454,8 +467,6 @@ class mapBot:
 				print "FINISH_POINT"
 			else:
 				print "END_ROAD"
-			print x.y
-			print x.x
 
 	def draw_road_points(self):
 		for x in self._road_points:
@@ -465,8 +476,9 @@ class mapBot:
 	def get_road_points(self):
 		return self._road_points
 
-	def get_way(self, source, dest):
-		return self.find_shortest_way(source, dest)
+	def get_way(self, source, dest, from_point=None):
+		return self.find_shortest_way(source, dest, from_point)
+
 	def print_map(self):
 		for x in self._robo_map:
 			for a in x:
@@ -529,21 +541,8 @@ class road_point:
 map_file = open(sys.argv[1], 'r')
 
 my_map = mapBot(map_file)
-my_map.print_map()
 
-my_map._create_road_points()
-my_map.print_road_points()
-my_map.draw_road_points()
-
-print "Start and Finish"
-
-my_map.print_start_finish_points()
-my_map.print_map()
-
-#my_map._find_nearest_points(road_point(coords(1, 1), X_CROSSROAD))
-my_map._create_road_graph()
 #my_map.draw_graph()
-my_map.find_test_path()
 
 
 
@@ -566,9 +565,9 @@ while 1:
 		d = int(input())
 		f = int(input())
 		if f == 'None':
-			my_map.find_shortest_way(my_map.get_road_points()[s], my_map.get_road_points()[d])
+			my_map.get_way(my_map.get_road_points()[s], my_map.get_road_points()[d])
 		else:
-			my_map.find_shortest_way(my_map.get_road_points()[s], my_map.get_road_points()[d], my_map.get_road_points()[f])
+			my_map.get_way(my_map.get_road_points()[s], my_map.get_road_points()[d], my_map.get_road_points()[f])
 
 
 #print my_map._is_corner(coords(1, 1))
