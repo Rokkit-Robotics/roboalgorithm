@@ -205,7 +205,11 @@ class mapBot:
 				break
 		if from_node != None and to_node != None:
 			print "remove edge (%d, %d)" % (from_node, to_node)
-			self._way_graph.remove_edge(from_node, to_node)
+			if self._way_graph.has_edge(from_node, to_node) :
+				self._way_graph.remove_edge(from_node, to_node)
+			else:
+				print "There isn't this edge"
+
 		else:
 			print "No this edge"
 
