@@ -536,6 +536,18 @@ class road_point:
 		self.corresponding_nodes_input = []
 		self.corresponding_nodes_output = []
 
+	def __eq__(self, other):
+		return self.x == other.x and \
+			self.y == other.y and \
+			self.type == other.type and \
+			self._st_fin == other._st_fin
+
+  	def __ne__(self, other):
+		return not (self.x == other.x and \
+			self.y == other.y and \
+			self.type == other.type and \
+			self._st_fin == other._st_fin)
+
 	def add_output_node(self, node, end_road_point):
 		self.corresponding_nodes_output.append([node, end_road_point])
 
@@ -563,7 +575,6 @@ map_file = open(sys.argv[1], 'r')
 my_map = mapBot(map_file)
 
 #my_map.draw_graph()
-
 
 
 while 1:
