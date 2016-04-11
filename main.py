@@ -5,8 +5,9 @@ X_CROSSROAD = 1
 T_CROSSROAD = 2
 ROAD_CORNER = 3
 END_ROAD = 4
-START_POINT = 5
-FINISH_POINT = 6
+SIMPLE_ROAD = 5
+START_POINT = 6
+FINISH_POINT = 7
 import sys
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -96,7 +97,7 @@ class mapBot:
 						self._way_graph.add_edge(i[0], j[0])
 
 	#from - с какого направления приехали
-	def find_shortest_way(self, source, destination, from_point = None):
+	def _find_shortest_way(self, source, destination, from_point = None):
 		if (source in self._road_points) == False:
 			print "ERROR: no source point in _road_points"
 			return None
@@ -106,7 +107,8 @@ class mapBot:
 			return None
 
 		start_node = None
-		if source.type == START_POINT:
+		if source._st_fin == START_POINT:
+			print "from start"
 			#добавление стартового узла
 			self._way_graph.add_node(self._nodes_counter)
 
@@ -147,7 +149,7 @@ class mapBot:
 		self._nodes_counter = self._nodes_counter - 1
 		self._way_graph.remove_node(self._nodes_counter)
 
-		if source.type == START_POINT:
+		if source._st_fin == START_POINT:
 			self._nodes_counter = self._nodes_counter - 1
 			self._way_graph.remove_node(self._nodes_counter)
 			path.pop(0)
@@ -208,7 +210,7 @@ class mapBot:
 			print "No this edge"
 
 	def find_test_path(self):
-		self.find_shortest_way(self._road_points[1], self._road_points[13], self._road_points[0])
+		self._find_shortest_way(self._road_points[1], self._road_points[13], self._road_points[0])
 	def _is_pass(self, coord):
 		if self._robo_map[coord.y][coord.x] == ' ':
 			return True
@@ -327,10 +329,10 @@ class mapBot:
 		for y_point in range(1, len(self._robo_map) - 1):
 			for x_point in range(1, len(self._robo_map[y_point]) - 1):
 				if self._is_start(coords(y_point, x_point)) == True:
-					self._start_finish_points.append(road_point(coords(y_point, x_point), START_POINT))
+					self._start_finish_points.append(road_point(coords(y_point, x_point), SIMPLE_ROAD,  START_POINT))
 					print "Find Start"
 				if self._is_end(coords(y_point, x_point)) == True:
-					self._start_finish_points.append(road_point(coords(y_point, x_point), FINISH_POINT))
+					self._start_finish_points.append(road_point(coords(y_point, x_point), SIMPLE_ROAD, FINISH_POINT))
 					print "Find End"
 
 		#начинать именно с 1, 1
@@ -351,10 +353,11 @@ class mapBot:
 
 		for x in self._start_finish_points:
 			flag = True
-			for w in self._road_points:
+			for i, w in enumerate(self._road_points):
 				if x.x == w.x and x.y == w.y:
 					print "find the same road_point"
 					flag = False
+					self._road_points[i]._st_fin = x._st_fin
 					#то есть точка старта финиша совпавдает с какой-то точкой на карте
 
 			if flag == True:
@@ -477,7 +480,23 @@ class mapBot:
 		return self._road_points
 
 	def get_way(self, source, dest, from_point=None):
-		return self.find_shortest_way(source, dest, from_point)
+		return self._find_shortest_way(source, dest, from_point)
+
+	def get_start_point(self):
+		for x in self._road_points:
+			if x._st_fin == START_POINT:
+				return x
+
+		print "ERROR Start point wasn't founded"
+		return None
+
+	def get_finish_point(self):
+		for x in self._road_points:
+			if x._st_fin == FINISH_POINT:
+				return x
+
+		print "ERROR Finish point wasn't founded"
+		return None
 
 	def print_map(self):
 		for x in self._robo_map:
@@ -505,14 +524,15 @@ class mapBot:
 #первая координата по y
 class coords:
 	def __init__(self, y, x):
-		self.x = x;
-		self.y = y;
+		self.x = x
+		self.y = y
 
 class road_point:
-	def __init__(self, coord, type):
+	def __init__(self, coord, type, st_fin = None):
 		self.x = coord.x
 		self.y = coord.y
 		self.type = type
+		self._st_fin = st_fin
 		self.corresponding_nodes_input = []
 		self.corresponding_nodes_output = []
 
@@ -563,10 +583,11 @@ while 1:
 		print ">source, dest, from"
 		s = int(input())
 		d = int(input())
-		f = int(input())
+		f = raw_input()
 		if f == 'None':
 			my_map.get_way(my_map.get_road_points()[s], my_map.get_road_points()[d])
 		else:
+			f = int(f)
 			my_map.get_way(my_map.get_road_points()[s], my_map.get_road_points()[d], my_map.get_road_points()[f])
 
 
