@@ -10,7 +10,7 @@ START_POINT = 6
 FINISH_POINT = 7
 import sys
 import networkx as nx
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 class robot:
 	def __init__(self, ):
@@ -512,14 +512,14 @@ class mapBot:
 		for x in path:
 			print "node: %d coords: %d %d" % (x, self._road_points[self._reverse_set[x]].y, self._road_points[self._reverse_set[x]].x)
 
-	def draw_graph(self):
+	"""def draw_graph(self):
 		pos=nx.spring_layout(self._way_graph,iterations=20)
 		#pos = nx.circular_layout(self._way_graph)
 		nx.draw(self._way_graph,pos,  node_size = 1000, labels = self._way_graph_labels, k = 0.2, nodecolor='r',edge_color='b')
 		#nx.draw(self._way_graph,pos,  node_size = 10, k = 0.01, nodecolor='r',edge_color='b')
 		#nx.draw(self._way_graph)
 		#plt.savefig("roads.png")
-		plt.show()
+		plt.show()"""
 
 	def print_matrix(self):
 		A = nx.adjacency_matrix(self._way_graph)

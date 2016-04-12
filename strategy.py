@@ -31,43 +31,61 @@ def move_1_tile():
 
 def move(distance):
 	chassis.move(SPEED, distance * TILE_SIZE)
+	while chassis.is_busy()
+		pass
 
 #use for road points in algorithm, this function moves robot -1 tile from the set distance
-def make_a_move(x_dif, y_dif, cur_dir):
+def turn(x_dif, y_dif, cur_dir):
 	#case : LEFT
 	if x_dif < 0:
+		print "AIM_DIR: left"
 		if cur_dir == RIGHT:
+			print "TURN reverse"
 			chassis.turn(SPEED, REVERSE)
 		elif cur_dir == UP:
+			print "TURN left"
 			chassis.turn(SPEED, ANGLE_LEFT)
 		elif cur_dir == DOWN:
+			print "TURN right"
 			chassis.turn(SPEED, ANGLE_RIGHT)
 		return LEFT
 	#case: RIGHT
 	elif x_dif > 0:
+		print "AIM_DIR: right"
 		if cur_dir == LEFT:
+			print "TURN reverse"
 			chassis.turn(SPEED, REVERSE)
 		elif cur_dir == UP:
+			print "TURN right"
 			chassis.turn(SPEED, ANGLE_RIGHT)
 		elif cur_dir == DOWN:
+			print "TURN left"
 			chassis.turn(SPEED, ANGLE_LEFT)
 		return RIGHT
 	#case: UP
 	if y_dif < 0:
+		print "AIM_DIR: up"
 		if cur_dir == LEFT:
+			print "TURN right"
 			chassis.turn(SPEED, ANGLE_RIGHT)
 		elif cur_dir == RIGHT:
+			print "TURN left"
 			chassis.turn(SPEED, ANGLE_LEFT)
 		elif cur_dir == DOWN:
+			print "TURN reverse"
 			chassis.turn(SPEED, REVERSE)
 		return UP
 	#case: DOWN
 	if y_dif > 0:
+		print "AIM_DIR: down"
 		if cur_dir == LEFT:
+			print "TURN left"
 			chassis.turn(SPEED, ANGLE_LEFT)
 		elif cur_dir == RIGHT:
+			print "TURN right"
 			chassis.turn(SPEED, ANGLE_RIGHT)
 		elif cur_dir == UP:
+			print "TURN reverse"
 			chassis.turn(SPEED, REVERSE)
 		return DOWN
 
@@ -80,11 +98,14 @@ def check_restrictions(map, cur, prev, direction):
 
 	idx = 0
 
+	type_of_res = 6
+
 	for i, x in enumerate(list_of_res):
 		if x == 1:
 			type_of_res = i
 
 		if type_of_res == STOP:
+			print "RESTRICTION: stop"
 			list_of_p = map._find_nearest_points(cur)
 
 			if direction == LEFT:
@@ -105,6 +126,7 @@ def check_restrictions(map, cur, prev, direction):
 			map.remove_way(cur, prev, list_of_p[idx])
 
 		elif type_of_res == RIGHT_ONLY:
+			print "RESTRICTION: right_only"
 			list_of_p = map._find_nearest_points(cur)
 
 			if direction == LEFT:
@@ -152,6 +174,7 @@ def check_restrictions(map, cur, prev, direction):
 					map.remove_way(cur, prev, list_of_p[idx])
 
 		elif type_of_res == LEFT_ONLY:
+			print "RESTRICTION: left_only"
 			list_of_p = map._find_nearest_points(cur)
 
 			if direction == LEFT:
@@ -199,6 +222,7 @@ def check_restrictions(map, cur, prev, direction):
 					map.remove_way(cur, prev, list_of_p[idx])
 
 		elif type_of_res == STRAIGHT_ONLY:
+			print "RESTRICTION: straight only"
 			list_of_p = map._find_nearest_points(cur)
 
 			if direction == LEFT:
@@ -226,24 +250,43 @@ def check_restrictions(map, cur, prev, direction):
 					idx = idx + 1
 
 		elif type_of_res == SEMAFORE_RED:
+			print "RESTRICTION: semaphore"
 			while(list_of_res[4] == 1):
 				list_of_res = read_from_socket()
 				sleep(0.01)
 
+	if type_of_res == 6:
+		return 1
+
+	return 0
+
+def max(a1, a2):
+	if a1 > a2:
+		return a1
+	else
+		return a2
+
+def abs(a):
+	if a < 0:
+		return -a
+	else
+		return a
 
 def route(map, direction):
 	start = map.get_start_point()
 	finish = map.get_finish_point()
 	cur_way = map.get_way(start, finish)
-	direction = make_a_move(cur_way[1].x - cur_way[0].x, cur_way[1].y - cur_way[0].y, direction)
-	idx = 1
-	check_restrictions(map, cur_way[1], cur_way[0], cur_dir)
-	cur_way = map.get_way(cur_way[1])
-	#check the comparison if it works as intended
-	while cur_way[idx] != finish:
-		restriction = is_restricted()
-		if restriction:
-			if restriction == STOP
+
+	direction = turn(cur_way[1].x - cur_way[0].x, cur_way[1].y - cur_way[0].y, direction)
+	move(max(abs(cur_way[1].x - cur_way[0].x, cur_way[1].y - cur_way[0].y)) - 1)
+
+	before_crossroad = True
+	on_crossroad = False
+
+	idx = 0
+	while cur_way[0] != finish:
+		if !check_restrictions(map, cur_way[0], prev_road_point, cur_dir):
+			cur_way = map.get_way()
 
 
 map_file = open(sys.argv[1], 'r')
